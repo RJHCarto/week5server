@@ -17,6 +17,55 @@ app.use(bodyParser.json());
 		next();
 	});
 
+app.post('/uploadData',function(req,res){
+// note that we are using POST here as we are uploading data
+// so the parameters form part of the BODY of the request rather than the
+console.dir(req.body);
+pool.connect(function(err,client,done) {
+ if(err){
+ console.log("not able to get connection "+ err);
+ res.status(400).send(err);
+ }
+ var geometrystring = "st_geomfromtext('POINT(" + req.body.longitude + " " + req.body.latitude + ")'";
+ var querystring = "INSERT into quizlet (Question,AnswerOne,AnswerTwo,AnswerThree,AnswerFour,Correct, geom) values ('";
+ querystring = querystring + req.body.Question + "','" + req.body.AnswerOne + "','" + req.body.AnswerTwo + "','" + req.body.AnswerThree + "','" + req.body.AnswerFour + "','" + req.body.Correct + "'," + geometrystring + "))";
+ console.log(querystring);
+ client.query( querystring,function(err,result) {
+done();
+if(err){
+	console.log(err);
+	res.status(400).send(err);
+}
+res.status(200).send("row inserted");
+});
+});
+});
+
+app.post('/uploadAnswer',function(req,res){
+// note that we are using POST here as we are uploading data
+// so the parameters form part of the BODY of the request rather than the
+console.dir(req.body);
+pool.connect(function(err,client,done) {
+ if(err){
+ console.log("not able to get connection "+ err);
+ res.status(400).send(err);
+ }
+ var querystring = "INSERT into answers (question,answer,correct) values ('";
+ querystring = querystring + req.body.question + "','" + req.body.answer + "','" + req.body.correct + "')";
+ console.log(querystring);
+ client.query( querystring,function(err,result) {
+done();
+if(err){
+	console.log(err);
+	res.status(400).send(err);
+}
+res.status(200).send("row inserted");
+});
+});
+});
+
+
+
 	
 	// adding functionality to log the requests
 	app.use(function (req, res, next) {
@@ -151,31 +200,6 @@ res.status(200).send(result.rows);
 });
 });
 
-app.post('/uploadData',function(req,res){
-// note that we are using POST here as we are uploading data
-// so the parameters form part of the BODY of the request rather than the
-console.dir(req.body);
-pool.connect(function(err,client,done) {
- if(err){
- console.log("not able to get connection "+ err);
- res.status(400).send(err);
- }
- var geometrystring = "st_geomfromtext('POINT(" + req.body.longitude + " " +
-req.body.latitude + ")'";
-var querystring = "INSERT into quizlet (Question,AnswerOne,AnswerTwo,AnswerThree,AnswerFour, geom) values ('";
-querystring = querystring + req.body.Question + "','" + req.body.AnswerOne + "','" + req.body.AnswerTwo + "','" + req.body.AnswerThree + "','" + req.body.AnswerFour + "','";
-querystring = querystring + geometrystring + "))";
- console.log(querystring);
- client.query( querystring,function(err,result) {
- done();
- if(err){
- console.log(err);
- res.status(400).send(err);
- }
- res.status(200).send("row inserted");
- });
- });
-});
 
 	// the / indicates the path that you type into the server - in this case, what happens when you type in:  http://developer.cege.ucl.ac.uk:32560/xxxxx/xxxxx
   app.get('/:name1', function (req, res) {
